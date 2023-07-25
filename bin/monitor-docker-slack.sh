@@ -10,6 +10,8 @@ if [ "$STARTUP_DELAY" -gt "0" ]; then
        sleep $STARTUP_DELAY
 fi
 
+echo "Starting monitoring script..."
+
 python /datalab/monitor-docker-slack.py  --check_interval "$CHECK_INTERVAL" \
        --slack_webhook "$SLACK_WEBHOOK" --whitelist "$WHITE_LIST" \
        --msg_prefix "$MSG_PREFIX"
