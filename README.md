@@ -22,3 +22,18 @@ Moreover, hard-coded version requirements for Python dependencies are stripped s
 A GitHub Workflow is added to automate the building of the Docker images.
 
 ## How to use
+You can run this image as a Docker service or as an standalone Docker container.
+
+Example code for running as a service:
+```
+docker service create \
+  --name dl-co-monitor \
+  --with-registry-auth \
+  --replicas 1 \
+  --restart-max-attempts 600 \
+  --restart-delay 60s \
+  --restart-condition any \
+  --env SLACK_WEBHOOK="https://hooks.slack.com/services/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" \
+  --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+  ghcr.io/datalabfabriek/dl-co-monitor:main
+```

@@ -1,3 +1,5 @@
 requests-unixsocket
+requests==2.28.1
+urllib3<2
 nose
 pylint
