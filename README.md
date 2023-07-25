@@ -33,7 +33,7 @@ docker service create \
   --restart-max-attempts 600 \
   --restart-delay 60s \
   --restart-condition any \
-  --env SLACK_WEBHOOK="https://hooks.slack.com/services/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" \
+  --env SLACK_WEBHOOK="YOUR_SLACK_WEBHOOK_URL_HERE" \
   --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
   ghcr.io/datalabfabriek/dl-co-monitor:main
 ```
