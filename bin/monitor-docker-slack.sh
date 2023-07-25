@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+sleep $STARTUP_DELAY
+
 python /datalab/monitor-docker-slack.py  --check_interval "$CHECK_INTERVAL" \
        --slack_webhook "$SLACK_WEBHOOK" --whitelist "$WHITE_LIST" \
        --msg_prefix "$MSG_PREFIX"

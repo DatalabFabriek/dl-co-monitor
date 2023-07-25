@@ -14,6 +14,7 @@ LABEL org.opencontainers.image.title="Datalab Studio Docker Service Monitor"
 ###
 # Environmental variables
 ENV CHECK_INTERVAL "300"
+ENV STARTUP_DELAY "300"
 ENV SLACK_WEBHOOK ""
 ENV WHITE_LIST ""
 ENV MSG_PREFIX ""
@@ -24,7 +25,7 @@ USER root
 RUN mkdir /datalab
 COPY bin/ /datalab/
 RUN pip install -r /datalab/requirements.txt
-RUN chmod o+x /datalab/*.sh && chmod o+x /datalab/*.py
+RUN chmod o+x /datalab/*.sh
 
 ###
 # Entrypoint

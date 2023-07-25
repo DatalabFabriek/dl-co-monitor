@@ -4,12 +4,15 @@
 # Licensed under MIT
 #   https://www.dennyzhang.com/wp-content/mit_license.txt
 #
+# @copyright 2023 Harmen van der Veer for the portions adopted 
+# for service rather than container monitoring
 # File : monitor-docker-slack.py
 # Author : Denny <https://www.dennyzhang.com/contact>
+# Author : Harmen van der Veer <harmen@datalab.nl>
 # Description :
 # --
 # Created : <2017-08-20>
-# Updated: Time-stamp: <2017-11-13 11:00:53>
+# Updated: Time-stamp: <2023-07-27 16:36:53>
 # -------------------------------------------------------------------
 import argparse
 import json
@@ -87,7 +90,7 @@ def monitor_docker_slack(docker_sock_file, white_pattern_list):
     # if len(stopped_container_list) != 0:
     #     err_msg = "Detected Stopped Containers: \n%s\n%s" % (container_list_to_str(stopped_container_list), err_msg)
     if len(unhealthy_services_list) != 0:
-        err_msg = "Detected Unhealthy Containers: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
+        err_msg = "Detected Unhealthy Services: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
 
     if err_msg == "":
         return "OK", "OK: detect no stopped or unhealthy services"
@@ -116,9 +119,11 @@ if __name__ == '__main__':
     if slack_webhook == '':
         print("Warning: Please provide slack webhook, to receive alerts properly.")
 
-    requests.post(slack_webhook, data=json.dumps({'text': 'Hello Channel! I am watching now!'}))
+    requests.post(slack_webhook, data=json.dumps({'text': 'Monitoring of docker services started'}))
 
     has_send_error_alert = False
+    previous_err_msg = ''
+
     while True:
         (status, err_msg) = monitor_docker_slack("/var/run/docker.sock", white_pattern_list)
         if msg_prefix != "":
@@ -129,9 +134,12 @@ if __name__ == '__main__':
                 requests.post(slack_webhook, data=json.dumps({'text': err_msg}))
                 has_send_error_alert = False
         else:
-            if has_send_error_alert is False:
+            if has_send_error_alert is False or previous_err_msg != err_msg:
                 requests.post(slack_webhook, data=json.dumps({'text': err_msg}))
                 # avoid send alerts over and over again
+                # but DO SEND if error message has changed (could mean other services have crashed)
                 has_send_error_alert = True
+                
+        previous_err_msg = err_msg
         time.sleep(check_interval)
 # File : monitor-docker-slack.py ends
