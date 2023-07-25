@@ -1,81 +1,24 @@
-<a href="https://github.com/DennyZhang?tab=followers"><img align="right" width="200" height="183" src="https://raw.githubusercontent.com/USDevOps/mywechat-slack-group/master/images/fork_github.png" /></a>
+# Docker Service monitoring
+This Docker image allows you to monitor Docker services (rather than Docker containers, as is the case with [the repository this is a fork of](https://www.github.com/dennyzhang/monitor-docker-slack)).
 
-[![Build Status](https://travis-ci.org/dennyzhang/monitor-docker-slack.svg?branch=master)](https://travis-ci.org/dennyzhang/monitor-docker-slack) [![Docker](https://raw.githubusercontent.com/USDevOps/mywechat-slack-group/master/images/docker.png)](https://hub.docker.com/r/denny/monitor-docker-slack/)
+It does so by checking the `Docker service ls` command and comparing the number of desired containers by the actual number of running containers. For example, the command `docker service ls` will output, for each service, 'Replicas = 1/3'. In this case, the service is considered unhealthy because the desired number of replicas (3) is lower than the running number of replicas (1). If this situation is encountered, a message will be posted to Slack listing the service name, the number of replicas and the desired number of replicas.
 
-[![LinkedIn](https://raw.githubusercontent.com/USDevOps/mywechat-slack-group/master/images/linkedin_icon.png)](https://www.linkedin.com/in/dennyzhang001) [![Github](https://raw.githubusercontent.com/USDevOps/mywechat-slack-group/master/images/github.png)](https://github.com/DennyZhang) <a href="https://www.dennyzhang.com/slack" target="_blank" rel="nofollow"><img src="http://slack.dennyzhang.com/badge.svg" alt="slack"/></a>
+Keep in mind that there might be valid reasons why the actual and desired number of replicas differ. For example, you might have very short-living containers executing small tasks. Then the Docker service coordinator will have a hard time in keeping the number of running replicas in sync with the desired number of replicas. This monitoring service is not developed for these cases. We're primarily aimed at monitoring services which have relatively long run-time per replica/container. This is the case with most webserver set-ups.
 
-- File me [tickets](https://github.com/DennyZhang/monitor-docker-slack/issues) or star [the repo](https://github.com/DennyZhang/monitor-docker-slack)
+Also note that this monitoring service is not meant for monitoring individual Docker containers. We kindly refer you to the [original repository](https://www.github.com/dennyzhang/monitor-docker-slack) for this purpose.
 
-# Introduction
-Get Slack Notifications, When Containers Run Into Issues
+## Source
+This is a fork of the container by [Denny Zhang](https://www.github.com/dennyzhang/monitor-docker-slack). Code is licensed under [MIT License](https://www.dennyzhang.com/wp-content/mit_license.txt).
 
-Read more: https://www.dennyzhang.com/docker_monitor
+This repository is highly changed from the original so one could consider this an extensive rework of the original.
 
-# General Idea
-1. Start a container in the target docker host.
-2. This container will query status for all containers.
+## Modifications
+This fork includes the [pull request by Svelix](https://github.com/dennyzhang/monitor-docker-slack/pull/7).
 
-```curl -XGET --unix-socket /var/run/docker.sock http://localhost/containers/json```
+It also includes modifications to the file structure of the repository (i.e. moving all code that is copied to the container to the bin/ folder in the repo).
 
-3. Send slack notifications, we get matched of "unhealthy"
+Moreover, hard-coded version requirements for Python dependencies are stripped since some of the dependencies are no longer available.
 
-# How To Use: Plain Container
-- Specify slack credentials via env
+A GitHub Workflow is added to automate the building of the Docker images.
 
-```
-export SLACK_CHANNEL="#XXX"
-export SLACK_USERNAME="XXX"
-export SLACK_TOKEN="xoxp-XXX-XXX-XXX-XXXXXXXX"
-export MSG_PREFIX="Monitoring On XX.XX.XX.XX"
-```
-
-- Start container to check
-```
-container_name="monitor-docker-slack"
-# Stop and delete existing container
-docker stop $container_name; docker rm "$container_name"
-
-# Start container to monitor docker healthcheck status
-docker run -v /var/run/docker.sock:/var/run/docker.sock \
-   -t -d -h $container_name --name $container_name \
-   -e SLACK_CHANNEL="$SLACK_CHANNEL" -e SLACK_USERNAME="$SLACK_USERNAME" \
-   -e SLACK_TOKEN="$SLACK_TOKEN" -e MSG_PREFIX="$MSG_PREFIX" \
-   -e WHITE_LIST="$WHITE_LIST" --restart=always \
-   denny/monitor-docker-slack:latest
-
-# Check status
-docker logs "$container_name"
-```
-
-# How To Use: Docker-compose
-```
-version: '2'
-services:
-  monitor-docker-slack:
-    container_name: monitor-docker-slack
-    image: denny/monitor-docker-slack:latest
-    volumes:
-     - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      SLACK_CHANNEL: "#XXX"
-      SLACK_USERNAME: "XXX"
-      SLACK_TOKEN: "xoxp-XXX-XXX-XXX-XXXXXXXX"
-      MSG_PREFIX: "Monitoring On XX.XX.XX.XX"
-    restart: always
-```
-
-# More customization
-- Add message prefix for the slack notification
-```
-export MSG_PREFIX="Docker Env in Denny's env"
-```
-<a href="https://www.dennyzhang.com"><img src="https://raw.githubusercontent.com/DennyZhang/monitor-docker-slack/master/images/slack_prefix.png"/> </a>
-
-- Skip checking certain containers by customizing WHITE_LIST env.
-```
-export MSG_PREFIX="Docker Env in Denny's env"
-export WHITE_LIST="nodeexporter,ngin.*"
-```
-<a href="https://www.dennyzhang.com"><img src="https://raw.githubusercontent.com/DennyZhang/monitor-docker-slack/master/images/slack_whitelist.png"/> </a>
-
-Code is licensed under [MIT License](https://www.dennyzhang.com/wp-content/mit_license.txt).
+## How to use

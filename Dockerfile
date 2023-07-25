@@ -1,39 +1,31 @@
-########## How To Use Docker Image ###############
-##
-##  Image Name: denny/monitor-docker-slack:latest
-##  Git link: https://github.com/DennyZhang/monitor-docker-slack/blob/master/Dockerfile
-##  Docker hub link:
-##  Build docker image: docker build --no-cache -t denny/monitor-docker-slack:latest --rm=true .
-##  How to use:
-##      https://github.com/DennyZhang/monitor-docker-slack/blob/master/README.md
-##
-##  Description: Send slack alerts, if any containers run into unhealthy
-##
-##  Read more: https://www.dennyzhang.com/docker_monitor
-##################################################
-# Base Docker image: https://hub.docker.com/_/python/
+FROM python:latest
 
-FROM python:3.6.2-jessie
+# Image labels
+ARG IMAGE_CREATED
+ARG GIT_DIGEST
 
-ENV SLACK_CHANNEL ""
-ENV SLACK_TOKEN ""
+LABEL org.opencontainers.image.created=$IMAGE_CREATED
+LABEL org.opencontainers.image.revision=$GIT_DIGEST
+LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.authors="harmen@datalab.nl,Denny Zhang"
+LABEL org.opencontainers.image.vendor="DatalabFabriek B.V."
+LABEL org.opencontainers.image.title="Datalab Studio Docker Service Monitor"
 
-ENV MSG_PREFIX ""
-ENV WHITE_LIST ""
-# seconds
+###
+# Environmental variables
 ENV CHECK_INTERVAL "300"
+ENV SLACK_WEBHOOK ""
+ENV WHITE_LIST ""
+ENV MSG_PREFIX ""
 
-LABEL maintainer="Denny<https://www.dennyzhang.com/contact>"
-
+###
+# Copy & install stuff
 USER root
-WORKDIR /
-ADD monitor-docker-slack.py /monitor-docker-slack.py
-ADD monitor-docker-slack.sh /monitor-docker-slack.sh
+RUN mkdir /datalab
+COPY bin/ /datalab/
+RUN pip install -r /datalab/requirements.txt
+RUN chmod o+x /datalab/*.sh && chmod o+x /datalab/*.py
 
-RUN chmod o+x /*.sh && chmod o+x /*.py && \
-    pip install -r requirements.txt && \
-# Verify docker image
-    pip show requests-unixsocket | grep "0.1.5" && \
-    pip show slackclient | grep "1.3.0"
-
-ENTRYPOINT ["/monitor-docker-slack.sh"]
+###
+# Entrypoint
+ENTRYPOINT ["/datalab/monitor-docker-slack.sh"]

@@ -1,0 +1,42 @@
+name: Docker Image CI for VPS
+
+on:
+  push:
+    branches: [ production, acceptance ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+    - name: Get IDs based on current date & appname
+      id: ids
+      run: |
+        datetime=$(date +'%Y-%m-%d.%H-%M-%S')
+        length=$(expr length "${{ github.repository_owner }}/ ")
+        appname=$(echo "${{ github.repository }}" | cut -c ${length}-)
+        appname_ascii=$(echo $appname | tr '[A-Z]' '[a-z]' | tr -d -)
+        image_id=ghcr.io/${{ github.repository_owner }}/$appname
+        image_id=$(echo $image_id | tr '[A-Z]' '[a-z]')
+        image_tag=$(echo ${GITHUB_REF#refs/heads/})
+        echo "datetime=${datetime}" >> $GITHUB_OUTPUT
+        echo "appname=${appname}" >> $GITHUB_OUTPUT
+        echo "appname_ascii=${appname_ascii}" >> $GITHUB_OUTPUT
+        echo "image_id=${image_id}" >> $GITHUB_OUTPUT
+        echo "image_tag=${image_tag}" >> $GITHUB_OUTPUT
+        
+    - name: 'Checkout the app repository (i.e. this repository)'
+      uses: actions/checkout@v2
+
+    - name: Log in to registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+
+    - name: 'Run docker build & docker push'
+      run: |
+        docker build -t ${{ steps.ids.outputs.image_id }}:${{ steps.ids.outputs.image_tag }} --build-arg IMAGE_CREATED=${{ steps.ids.outputs.datetime }} --build-arg GIT_DIGEST=${{ github.sha }} .
+        docker push ${{ steps.ids.outputs.image_id }}:${{ steps.ids.outputs.image_tag }}
