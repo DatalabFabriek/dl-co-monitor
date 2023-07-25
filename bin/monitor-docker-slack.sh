@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-if [[ -f /run/secrets/dl-co-monitor-slack-webhook ]] && [[ "$SLACK_WEBHOOK" == ""]]; then
+if [ -f /run/secrets/dl-co-monitor-slack-webhook ]; then
        export SLACK_WEBHOOK=$(cat /run/secrets/dl-co-monitor-slack-webhook)
 fi
 
