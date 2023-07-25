@@ -25,7 +25,10 @@ A GitHub Workflow is added to automate the building of the Docker images.
 You can run this image as a Docker service or as an standalone Docker container.
 
 Example code for running as a service:
+
 ```
+echo "YOUR_SLACK_WEBHOOK_HERE" | docker secret create dl-co-monitor-slack-webhook -
+
 docker service create \
   --name dl-co-monitor \
   --with-registry-auth \
@@ -33,7 +36,9 @@ docker service create \
   --restart-max-attempts 600 \
   --restart-delay 60s \
   --restart-condition any \
-  --env SLACK_WEBHOOK="YOUR_SLACK_WEBHOOK_URL_HERE" \
+  --secret dl-co-monitor-slack-webhook \
   --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
   ghcr.io/datalabfabriek/dl-co-monitor:main
 ```
+
+Rather than a secret, you could also use `--env SLACK_WEBHOOK="YOUR_SLACK_WEBHOOK_URL_HERE"`.
