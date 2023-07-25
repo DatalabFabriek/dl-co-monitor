@@ -2,7 +2,7 @@ name: Docker Image CI for VPS
 
 on:
   push:
-    branches: [ production, acceptance ]
+    branches: [ main, production, acceptance ]
 
 jobs:
 
@@ -29,7 +29,7 @@ jobs:
         echo "appname_ascii=${appname_ascii}" >> $GITHUB_OUTPUT
         echo "image_id=${image_id}" >> $GITHUB_OUTPUT
         echo "image_tag=${image_tag}" >> $GITHUB_OUTPUT
-        
+
     - name: 'Checkout the app repository (i.e. this repository)'
       uses: actions/checkout@v2
 
