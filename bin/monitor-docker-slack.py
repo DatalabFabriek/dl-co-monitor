@@ -89,8 +89,15 @@ def monitor_docker_slack(docker_sock_file, white_pattern_list):
     err_msg = ""
     # if len(stopped_container_list) != 0:
     #     err_msg = "Detected Stopped Containers: \n%s\n%s" % (container_list_to_str(stopped_container_list), err_msg)
-    if len(unhealthy_services_list) != 0:
+
+    number_of_unhealthy_services_list = len(unhealthy_services_list)
+    
+    if number_of_unhealthy_services_list != 0:
         err_msg = "Detected Unhealthy Services: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
+
+
+
+    print(f"Services health checked, {number_of_unhealthy_services_list} unhealthy {err_msg}")
 
     if err_msg == "":
         return "OK", "OK: detect no stopped or unhealthy services"
