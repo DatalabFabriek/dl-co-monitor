@@ -2,7 +2,7 @@ name: Docker Image CI for VPS
 
 on:
   push:
-    branches: [ main, production, acceptance ]
+    branches: [ production, acceptance ]
 
 jobs:
 
