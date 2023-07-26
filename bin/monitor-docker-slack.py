@@ -73,8 +73,6 @@ def service_list_to_str(service_list):
     return msg
 
 def monitor_docker_slack(docker_sock_file, white_pattern_list):
-    now = datetime.now()
-
     services_list = list_services_by_sock(docker_sock_file)
     unhealthy_services_list = get_unhealthy_services(services_list)
 
@@ -85,13 +83,11 @@ def monitor_docker_slack(docker_sock_file, white_pattern_list):
     number_of_unhealthy_services_list = len(unhealthy_services_list)
     
     if number_of_unhealthy_services_list != 0:
-        err_msg = "[%s]\tDetected Unhealthy Services: \n%s\n%s" % (now, service_list_to_str(unhealthy_services_list), err_msg)
+        err_msg = "Detected Unhealthy Services: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
 
     if err_msg == "":
-        print(f"[{now}]\tServices health checked, 0 unhealthy")
         return "OK", "Everything seems to be back to normal, all services have the same number of running replicas as target replicas"
     else:
-        print(f"[{now}]\tServices health checked, {number_of_unhealthy_services_list} unhealthy:\n{err_msg}")
         return "ERROR", err_msg
 
 if __name__ == '__main__':
@@ -121,17 +117,21 @@ if __name__ == '__main__':
     previous_err_msg = ''
 
     while True:
+        now = datetime.now()
         (status, err_msg) = monitor_docker_slack("/var/run/docker.sock", white_pattern_list)
+
         if msg_prefix != "":
             err_msg = "%s:\n%s" % (msg_prefix, err_msg)
-        print("%s: %s" % (status, err_msg))
+        
         if status == "OK":
             if has_send_error_alert is True:
-                requests.post(slack_webhook, data=json.dumps({'text': err_msg}))
+                print(f"[{now}]  {err_msg}")
+                requests.post(slack_webhook, data=json.dumps({'text': f"[{now}]  {err_msg}"}))
                 has_send_error_alert = False
         else:
             if has_send_error_alert is False or previous_err_msg != err_msg:
-                requests.post(slack_webhook, data=json.dumps({'text': err_msg}))
+                print(f"[{now}]  {err_msg}")
+                requests.post(slack_webhook, data=json.dumps({'text': f"[{now}]  {err_msg}"}))
                 # avoid send alerts over and over again
                 # but DO SEND if error message has changed (could mean other services have crashed)
                 has_send_error_alert = True
