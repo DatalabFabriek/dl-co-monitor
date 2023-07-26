@@ -45,14 +45,8 @@ def list_services_by_sock(docker_sock_file):
         container_list.append(item)
     return container_list
 
-
-# def get_stopped_containers(service_list):
-#     return [service for service in service_list if service[1] < service[2]]
-
-
 def get_unhealthy_services(service_list):
     return [service for service in service_list if service[1] < service[2]]
-
 
 # TODO: simplify this by lambda
 def services_remove_by_name_pattern(service_list, name_pattern_list):
@@ -69,7 +63,6 @@ def services_remove_by_name_pattern(service_list, name_pattern_list):
             l.append(service)
     return l
 
-
 def service_list_to_str(service_list):
     msg = ""
     for service in service_list:
@@ -77,33 +70,25 @@ def service_list_to_str(service_list):
         msg = f"{names}: {running}/{desired}\n{msg}"
     return msg
 
-
 def monitor_docker_slack(docker_sock_file, white_pattern_list):
-    container_list = list_services_by_sock(docker_sock_file)
-    #stopped_container_list = get_stopped_containers(container_list)
-    unhealthy_services_list = get_unhealthy_services(container_list)
+    services_list = list_services_by_sock(docker_sock_file)
+    unhealthy_services_list = get_unhealthy_services(services_list)
 
-    #stopped_container_list = containers_remove_by_name_pattern(stopped_container_list, white_pattern_list)
     unhealthy_services_list = services_remove_by_name_pattern(unhealthy_services_list, white_pattern_list)
 
     err_msg = ""
-    # if len(stopped_container_list) != 0:
-    #     err_msg = "Detected Stopped Containers: \n%s\n%s" % (container_list_to_str(stopped_container_list), err_msg)
 
     number_of_unhealthy_services_list = len(unhealthy_services_list)
     
     if number_of_unhealthy_services_list != 0:
         err_msg = "Detected Unhealthy Services: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
 
-
-
     print(f"Services health checked, {number_of_unhealthy_services_list} unhealthy {err_msg}")
 
     if err_msg == "":
-        return "OK", "OK: detect no stopped or unhealthy services"
+        return "OK", "Everything seems to be back to normal, all services have the same number of running replicas as target replicas"
     else:
         return "ERROR", err_msg
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -126,7 +111,7 @@ if __name__ == '__main__':
     if slack_webhook == '':
         print("Warning: Please provide slack webhook, to receive alerts properly.")
 
-    requests.post(slack_webhook, data=json.dumps({'text': 'Monitoring of docker services started'}))
+    requests.post(slack_webhook, data=json.dumps({'text': f"{msg_prefix}:\nMonitoring of Docker Services started"}))
 
     has_send_error_alert = False
     previous_err_msg = ''
@@ -134,7 +119,7 @@ if __name__ == '__main__':
     while True:
         (status, err_msg) = monitor_docker_slack("/var/run/docker.sock", white_pattern_list)
         if msg_prefix != "":
-            err_msg = "%s\n%s" % (msg_prefix, err_msg)
+            err_msg = "%s:\n%s" % (msg_prefix, err_msg)
         print("%s: %s" % (status, err_msg))
         if status == "OK":
             if has_send_error_alert is True:
