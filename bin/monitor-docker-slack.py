@@ -22,6 +22,8 @@ import time
 import requests_unixsocket
 import requests
 
+from datetime import datetime
+
 
 def name_in_list(name, name_pattern_list):
     for name_pattern in name_pattern_list:
@@ -71,6 +73,8 @@ def service_list_to_str(service_list):
     return msg
 
 def monitor_docker_slack(docker_sock_file, white_pattern_list):
+    now = datetime.now()
+
     services_list = list_services_by_sock(docker_sock_file)
     unhealthy_services_list = get_unhealthy_services(services_list)
 
@@ -81,13 +85,13 @@ def monitor_docker_slack(docker_sock_file, white_pattern_list):
     number_of_unhealthy_services_list = len(unhealthy_services_list)
     
     if number_of_unhealthy_services_list != 0:
-        err_msg = "Detected Unhealthy Services: \n%s\n%s" % (service_list_to_str(unhealthy_services_list), err_msg)
-
-    print(f"Services health checked, {number_of_unhealthy_services_list} unhealthy {err_msg}")
+        err_msg = "[%s]\tDetected Unhealthy Services: \n%s\n%s" % (now, service_list_to_str(unhealthy_services_list), err_msg)
 
     if err_msg == "":
+        print(f"[{now}]\tServices health checked, 0 unhealthy")
         return "OK", "Everything seems to be back to normal, all services have the same number of running replicas as target replicas"
     else:
+        print(f"[{now}]\tServices health checked, {number_of_unhealthy_services_list} unhealthy:\n{err_msg}")
         return "ERROR", err_msg
 
 if __name__ == '__main__':

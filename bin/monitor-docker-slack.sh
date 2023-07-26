@@ -5,7 +5,7 @@ if [ -f /run/secrets/dl-co-monitor-slack-webhook ]; then
        export SLACK_WEBHOOK=$(cat /run/secrets/dl-co-monitor-slack-webhook)
 fi
 
-if [ "$STARTUP_DELAY" -gt "0" ]; then
+if [ ${STARTUP_DELAY:=0} -gt 0 ]; then
        echo "Entering start-up delay mode for $STARTUP_DELAY seconds..."
        sleep $STARTUP_DELAY
 fi
