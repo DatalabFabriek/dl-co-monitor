@@ -17,6 +17,9 @@ python /datalab/monitor-docker-slack.py  --check_interval "$CHECK_INTERVAL" \
        --slack_webhook "$SLACK_WEBHOOK" --whitelist "$WHITE_LIST" \
        --msg_prefix "$MSG_PREFIX"
 
-echo -e "[$(TZ='Europe/Amsterdam' date +'%Y-%m-%d %H:%M:%S.%N')]\tDocker Services monitor stopped"
+msg_end="[$(TZ='Europe/Amsterdam' date +'%Y-%m-%d %H:%M:%S.%N')]\tDocker Services monitor Python script stopped; normally it will start up again automatically. If it doesn't, please check."
+echo -e $msg_end
+
+curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$msg_end\"}" "$SLACK_WEBHOOK"
 
 ## File : monitor-docker-slack.sh ends
